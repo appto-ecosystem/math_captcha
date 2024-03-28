@@ -1,8 +1,8 @@
-use image::{DynamicImage, ImageBuffer, Rgb};
-use rand::Rng;
 use std::io::Cursor;
 
-use base64::engine::{general_purpose::STANDARD, Engine};
+use image::{DynamicImage, ImageBuffer, Rgb};
+use rand::Rng;
+
 fn gen_math() -> (u32, char, u32) {
     let operators = ['+', '-', '×', '÷'];
     let mut rng = rand::thread_rng();
@@ -146,7 +146,7 @@ fn rand_deep_color() -> Rgb<u8> {
 }
 
 // 最后效果是，输入宽高，输出答案+base64图像
-pub fn draw_text(width: u32, height: u32, text: &str) -> String {
+pub fn draw_text(width: u32, height: u32, text: &str) -> Vec<u8> {
     let mut image = ImageBuffer::new(width, height);
     // 第一步，绘制背景颜色
     let background_color = rand_light_color();
@@ -176,11 +176,6 @@ pub fn draw_text(width: u32, height: u32, text: &str) -> String {
         imageproc::drawing::draw_text_mut(&mut image, color, x, y, scale, &font, &c.to_string());
     }
     // let _ = image.save(format!("{}.png", text));
-    to_base64_str(image)
-}
-
-fn to_base64_str(image: ImageBuffer<Rgb<u8>, Vec<u8>>) -> String {
-    // 将图像缓冲区转换为动态图像
     let dynamic_image: DynamicImage = ImageBuffer::from(image).into();
 
     // 创建字节缓冲区，用于存储图像数据
@@ -188,19 +183,5 @@ fn to_base64_str(image: ImageBuffer<Rgb<u8>, Vec<u8>>) -> String {
 
     // 将图像数据写入字节缓冲区
     dynamic_image.write_to(&mut buf, image::ImageOutputFormat::Png).unwrap();
-
-    // 将字节缓冲区编码为 Base64 字符串
-    let base64_string = STANDARD.encode(&buf.get_ref());
-    format!("data:image/png;base64,{}", base64_string)
+    buf.get_ref().to_owned()
 }
-
-// fn main() {
-//     let start = std::time::Instant::now();
-//     for _ in 0..10 {
-//         let z = rand_math();
-//         let zz = draw(170, 50, &z.0);
-//         println!("{}", zz);
-//     }
-//     let end = std::time::Instant::now();
-//     println!("time: {:?}", end - start);
-// }
